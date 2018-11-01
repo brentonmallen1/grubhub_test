@@ -2,9 +2,10 @@
 This script will train a region based model
 """
 import argparse
-import utils as _utils
+from grubhub import utils as _utils
 import logging
 import sys
+import click
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
@@ -13,34 +14,17 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 # https://stackoverflow.com/questions/51986414/deprecationwarning-numpy-core-umath-tests
 # workaround is hacky
 
-# get cli input for region
-def get_args():
-    """
-    get the CLI input args
-    :return:
-    """
-    parser = argparse.ArgumentParser(
-        description="Build a model using a region ID"
-    )
-    parser.add_argument('--region_id',
-                        type=int,
-                        help='region ID integer'
-                        )
-    parser.add_argument('--model_id',
-                        type=str,
-                        default=None,
-                        help='model ID string for savename'
-                        )
-    return parser.parse_args()
 
-
-def main(region_id: int,
-         model_id: str):
+@click.command()
+@click.option("--region_id", default=1, help="Region for model training")
+@click.option("--model_id", default=None, help="Trained model ID")
+def main(region_id: int, model_id:str):
     """
     Perform feature engineering and model training and saving
     :param region_id:
     :return:
     """
+
     # load training data
     logging.info('GETTING TRAINING DATA...')
     training_data = _utils.load_google_doc(_utils.DOC_ID,
@@ -49,15 +33,13 @@ def main(region_id: int,
                                            )
     # perform feature engineering
     logging.info('BUILDING FEATURES...')
-    feature_data = _utils.build_region_features(training_data,
-                                                region_id)
+    feature_data = _utils.build_region_features(training_data, region_id)
     # build model
     logging.info('TRAINING MODEL...')
     model = _utils.train_model(feature_data)
     # CV performance
     logging.info('CHECKING MODEL PERFORMANCE...')
-    score = _utils.model_validation(model,
-                                        feature_data)
+    score = _utils.model_validation(model, feature_data)
     logging.info(f"MODEL PERFORMANCE RMSE: {score}")
     # save model
     if not model_id:
@@ -67,5 +49,4 @@ def main(region_id: int,
 
 
 if __name__ == '__main__':
-    args = get_args()
-    main(args.region_id, args.model_id)
+    main()
