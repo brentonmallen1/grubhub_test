@@ -19,3 +19,7 @@ package-test: clean-dist
 	python setup.py sdist bdist_wheel
 	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 
+.PHONY: package-prod
+package-prod: clean-dist
+	python setup.py sdist bdist_wheel
+	twine upload dist/*
